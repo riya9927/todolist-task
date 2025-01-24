@@ -7,7 +7,10 @@ const initialState = {
 
 const todoSlice = createSlice({
   name: 'todos',
-  initialState,
+  initialState: {
+    tasks: [],
+    filter: 'all', 
+  },
   reducers: {
     addTask: (state, action) => {
       state.tasks.push({

@@ -9,7 +9,6 @@ import TaskStats from './TaskStats';
 const SidebarContainer = styled.div`
   background: #2d3436;
   width: 100%;
-  min-height: auto;
   padding: 1rem;
   color: white;
   display: flex;
@@ -44,7 +43,11 @@ const MenuButton = styled.button`
 `;
 
 const SidebarContent = styled.div`
-  display: ${props => props.isOpen || window.innerWidth >= 768 ? 'block' : 'none'};
+  display: ${(props) => (props.$isOpen ? 'block' : 'none')};
+
+  @media (min-width: 768px) {
+    display: block;
+  }
 `;
 
 const UserSection = styled.div`
@@ -79,7 +82,7 @@ const MenuItem = styled.li`
   cursor: pointer;
   border-radius: 8px;
   transition: background-color 0.2s;
-  background: ${props => props.active ? '#34495e' : 'transparent'};
+  background: ${(props) => (props.$active ? '#34495e' : 'transparent')};
 
   &:hover {
     background: #34495e;
@@ -93,8 +96,8 @@ const LogoutButton = styled(MenuItem)`
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const user = useSelector(state => state.auth.user);
-  const currentFilter = useSelector(state => state.todos.filter);
+  const user = useSelector((state) => state.auth.user);
+  const currentFilter = useSelector((state) => state.todos.filter);
   const dispatch = useDispatch();
 
   const handleLogout = () => {
@@ -120,29 +123,24 @@ const Sidebar = () => {
         </MenuButton>
       </MobileHeader>
 
-      <SidebarContent isOpen={isOpen}>
+      <SidebarContent $isOpen={isOpen}>
         <MenuList>
-          <MenuItem 
-            active={currentFilter === 'all'}
+          <MenuItem
+            $active={currentFilter === 'all'}
             onClick={() => handleFilterChange('all')}
           >
             <BiListUl size={20} />
-            <span>All tasks</span>
+            <span>All Tasks</span>
           </MenuItem>
-          <MenuItem 
-            active={currentFilter === 'today'}
-            onClick={() => handleFilterChange('today')}
-          >
-            <BiCalendar size={20} />
-            <span>Today</span>
-          </MenuItem>
-          <MenuItem 
-            active={currentFilter === 'important'}
+          
+          <MenuItem
+            $active={currentFilter === 'important'}
             onClick={() => handleFilterChange('important')}
           >
             <BiStar size={20} />
             <span>Important</span>
           </MenuItem>
+
         </MenuList>
 
         <TaskStats />

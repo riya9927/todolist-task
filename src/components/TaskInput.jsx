@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useDispatch } from 'react-redux';
 import { addTask } from '../store/slices/todoSlice';
-import { BiBell, BiCalendar } from 'react-icons/bi';
+import { BiCalendar } from 'react-icons/bi';
 import { MdOutlinePriorityHigh } from 'react-icons/md';
+import { WeatherWidget } from './WeatherWidget';
 
 const InputContainer = styled.div`
   background: #2d3436;
@@ -31,6 +32,12 @@ const Input = styled.input`
   }
 `;
 
+const WeatherInfo = styled.div`
+  color: white;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+`;
+
 const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
@@ -43,25 +50,17 @@ const ButtonGroup = styled.div`
   }
 `;
 
-const IconGroup = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  color: #b2bec3;
-  flex-wrap: wrap;
-  align-items: center;
-
-  @media (min-width: 480px) {
-    gap: 1rem;
-  }
-`;
-
 const PriorityButton = styled.button`
-  background: ${props => {
-    switch (props.priority) {
-      case 'high': return '#fc8181';
-      case 'medium': return '#f6e05e';
-      case 'low': return '#68d391';
-      default: return '#4a5568';
+  background: ${(props) => {
+    switch (props.$priority) {
+      case 'high':
+        return '#fc8181';
+      case 'medium':
+        return '#f6e05e';
+      case 'low':
+        return '#68d391';
+      default:
+        return '#4a5568';
     }
   }};
   color: white;
@@ -73,39 +72,6 @@ const PriorityButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  flex-shrink: 0;
-`;
-
-const DateInput = styled.input`
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
-  width: 0;
-  padding: 0;
-  opacity: 0;
-  position: absolute;
-
-  &::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    filter: invert(1);
-  }
-`;
-
-const DateButton = styled.button`
-  background: none;
-  border: none;
-  color: #b2bec3;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding: 0.5rem;
-  border-radius: 4px;
-
-  &:hover {
-    background: #34495e;
-  }
 `;
 
 const AddButton = styled.button`
@@ -115,12 +81,6 @@ const AddButton = styled.button`
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
-  width: 100%;
-
-  @media (min-width: 480px) {
-    width: auto;
-  }
-
   &:hover {
     background: #00a884;
   }
@@ -130,16 +90,32 @@ const TaskInput = () => {
   const [text, setText] = useState('');
   const [priority, setPriority] = useState('medium');
   const [dueDate, setDueDate] = useState('');
+  const [weather, setWeather] = useState(null);
+  const [error, setError] = useState('');
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const data = await  WeatherWidget();
+        setWeather(data);
+      } catch (err) {
+        setError('Unable to fetch weather data. Please try again later.');
+      }
+    };
+    fetchWeather();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (text.trim()) {
-      dispatch(addTask({ 
-        text, 
-        priority,
-        dueDate: dueDate || null
-      }));
+      dispatch(
+        addTask({
+          text,
+          priority,
+          dueDate: dueDate || null,
+        })
+      );
       setText('');
       setPriority('medium');
       setDueDate('');
@@ -153,45 +129,31 @@ const TaskInput = () => {
     setPriority(priorities[nextIndex]);
   };
 
-  const getPriorityLabel = () => {
-    return priority.charAt(0).toUpperCase() + priority.slice(1);
-  };
-
   return (
     <InputContainer>
+      {weather && (
+        <WeatherInfo>
+          <strong>Current Weather:</strong> {weather.description}, {weather.temp}°C
+        </WeatherInfo>
+      )}
+      {error && <WeatherInfo style={{ color: '#fc8181' }}>{error}</WeatherInfo>}
       <Form onSubmit={handleSubmit}>
         <Input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a task"
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
         />
         <ButtonGroup>
-          <IconGroup>
-            <PriorityButton
-              type="button"
-              priority={priority}
-              onClick={togglePriority}
-            >
-              <MdOutlinePriorityHigh size={16} />
-              {getPriorityLabel()}
-            </PriorityButton>
-            <DateButton>
-              <BiCalendar size={20} />
-              <DateInput
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-            </DateButton>
-          </IconGroup>
-          <AddButton type="submit">ADD TASK</AddButton>
+          <PriorityButton
+            type="button"
+            $priority={priority}
+            onClick={togglePriority}
+          >
+            <MdOutlinePriorityHigh size={16} />
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+          </PriorityButton>
+          <AddButton type="submit">Add Task</AddButton>
         </ButtonGroup>
       </Form>
     </InputContainer>
