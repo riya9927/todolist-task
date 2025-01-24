@@ -90,7 +90,6 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Mock authentication - in a real app, this would be an API call
     if (credentials.email && credentials.password) {
       if (credentials.email === 'user@example.com' && credentials.password === 'password') {
         dispatch(login({

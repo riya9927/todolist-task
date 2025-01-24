@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   tasks: [],
-  filter: 'all', // 'all', 'important', 'today'
+  filter: 'all', 
 };
 
 const todoSlice = createSlice({
@@ -24,7 +24,6 @@ const todoSlice = createSlice({
       const task = state.tasks.find(task => task.id === action.payload);
       if (task) {
         task.completed = !task.completed;
-        // Move completed tasks to the end
         if (task.completed) {
           state.tasks = [
             ...state.tasks.filter(t => t.id !== task.id && !t.completed),
